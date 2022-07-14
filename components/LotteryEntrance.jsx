@@ -16,7 +16,11 @@ const LotteryEntrance = () => {
   const chainId = parseInt(chainIdHex);
   const lotteryAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null;
 
-  const { runContractFunction: enterLottery } = useWeb3Contract({
+  const {
+    runContractFunction: enterLottery,
+    isLoading,
+    isFetching,
+  } = useWeb3Contract({
     abi: LotteryAbi.abi,
     functionName: "enterLottery",
     contractAddress: lotteryAddress,
@@ -113,20 +117,33 @@ const LotteryEntrance = () => {
   }, [isWeb3Enabled]);
 
   return (
-    <div>
-      Lottery entrance fee is : {ethers.utils.formatEther(entranceFee)}
-      <button
-        onClick={async () => {
-          await enterLottery({
-            onSuccess: handleSuccess,
-            onError: (err) => console.log(err),
-          });
-        }}
-      >
-        Enter lottery
-      </button>
-      <p>Number of players entered : {numberOfPlayer}</p>
-      {recentWinner ? <p>Recent Winner is : {recentWinner}</p> : null}
+    <div className="p-5">
+      <h1 className="py-4 font-bold text-3xl">Lottery</h1>
+      {lotteryAddress ? (
+        <>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={async () => {
+              await enterLottery({
+                onSuccess: handleSuccess,
+                onError: (err) => console.log(err),
+              });
+            }}
+            disabled={isLoading || isFetching}
+          >
+            {isLoading || isFetching ? (
+              <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+            ) : (
+              "Enter Lottery"
+            )}
+          </button>
+          <div className="mt-2">Entrance Fee: {ethers.utils.formatEther(entranceFee)} ETH</div>
+          <div className="mt-2">The current number of players is: {numberOfPlayer}</div>
+          {recentWinner ? <p>The most previous winner was: {recentWinner}</p> : null}
+        </>
+      ) : (
+        <div>Please connect to a supported chain </div>
+      )}
     </div>
   );
 };
